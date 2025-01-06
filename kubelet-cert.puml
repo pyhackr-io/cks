@@ -1,0 +1,26 @@
+#
+# 1. Kubelet creates CSR using Bootstrap token
+# 2. "CSRApprovingController" approcves the CSR automatically
+# 3. "CSRSignerController" signs the CSR
+# 4. Kubelet downloads the generated certificate and starts using it
+# 5. Kubelet rquests new client certifcate to talk to APIServer when existing one nearing expiration
+@startuml
+
+Kubelet -> APIServer ++ : Create CSR using Bootstrap Token
+return
+Kubelet -> APIServer : Watch new CSR
+APIServer -> ControllerManager ++ : Watch Event
+ControllerManager -> ControllerManager  : CSR Requested by Kubelet
+ControllerManager -> APIServer ++ : Mark CSR as Approved
+return
+ControllerManager -> ControllerManager : Sign CSR
+ControllerManager -> APIServer ++ : UPdate CSR resource with cert
+return
+
+APIServer -> Kubelet ++ : Watch Event
+Kubelet -> APIServer ++ : Download cert
+return
+
+Kubelet -> Kubelet : Use New CLeint Cert for API access
+
+@enduml
